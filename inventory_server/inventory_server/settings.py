@@ -1,10 +1,30 @@
-
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 from mongoengine import connect
 
 load_dotenv()
+
+# Validate required environment variables early
+assert os.getenv("MONGO_URI"), "❌ MONGO_URI is missing from environment"
+assert os.getenv("DJANGO_SECRET_KEY"), "❌ DJANGO_SECRET_KEY is missing"
+
+print("MONGO_URI:", os.getenv("MONGO_URI"))
+
+
+
+
+import logging
+try:
+    connect(
+        db=os.getenv("MONGO_DB_NAME"),
+        host=os.getenv("MONGO_URI")
+    )
+    print("✅ MongoDB connected")
+except Exception as e:
+    logging.error("❌ MongoDB connection failed", exc_info=e)
+
+
 
 """
 Django settings for inventory_server project.
@@ -91,10 +111,7 @@ WSGI_APPLICATION = 'inventory_server.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-connect(
-    db=os.getenv("MONGO_DB_NAME"),
-    host=os.getenv("MONGO_URI")
-)
+
 
 # DATABASES = {
 #     'default': {

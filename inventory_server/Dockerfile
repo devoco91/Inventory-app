@@ -19,3 +19,10 @@ ENV PYTHONPATH=/app
 EXPOSE 8000
 
 CMD ["gunicorn", "inventory_server.wsgi:application", "--bind", "0.0.0.0:8080"]
+
+# Add this to Dockerfile
+COPY .env /app/.env
+
+# Dump environment vars for debugging
+RUN echo "DEBUG ENV:" && env
+
