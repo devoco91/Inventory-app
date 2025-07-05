@@ -6,7 +6,8 @@ from .views import (
     ProductViewSet, SupplierViewSet, CategoryViewSet,
     CustomerViewSet, OrderViewSet, LoginView,
     ProductCSVExportView, ProductPDFExportView,
-    OrderCSVExportView, OrderPDFExportView
+    OrderCSVExportView, OrderPDFExportView,
+    sales_summary, inventory_summary
 )
 
 router = DefaultRouter()
@@ -28,4 +29,8 @@ urlpatterns = [
     # Orders Export
     path('export/orders/csv/', OrderCSVExportView.as_view(), name='export_orders_csv'),
     path('export/orders/pdf/', OrderPDFExportView.as_view(), name='export_orders_pdf'),
+
+    # Dashboard APIs
+    path('dashboard/sales/', sales_summary),
+    path('dashboard/inventory/', inventory_summary),
 ]

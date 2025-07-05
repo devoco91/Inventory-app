@@ -1,17 +1,17 @@
 from django.shortcuts import render
-
-# Create your views here.
+from django.http import HttpResponse, FileResponse, JsonResponse
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
 from django.core.mail import send_mail
-
-from django.http import HttpResponse, FileResponse
 from reportlab.pdfgen import canvas
+from collections import defaultdict
 import io, csv
+from datetime import datetime
 
 from .models import *
 from .serializers import *
@@ -151,3 +151,24 @@ class OrderPDFExportView(APIView):
         p.save()
         buffer.seek(0)
         return FileResponse(buffer, as_attachment=True, filename='orders.pdf')
+
+# ------------------
+# Dashboard API
+# ------------------
+@api_view(['GET'])
+def sales_summary(request):
+    result = defaultdict(float)
+    for order in Order.objects.all():
+        if order.created_at:
+            month = order.created_at.strftime("%b")
+            result[month] += float(order.total_price)
+    return JsonResponse(
+        [{'month': m, 'sales': round(s, 2)} for m, s in result.items()],
+        safe=False
+    )
+
+@api_view(['GET'])
+def inventory_summary(request):
+    total = Product.objects.count()
+    low_stock = Product.objects.filter(quantity__lte=10).count()
+    return JsonResponse({"total": total, "lowStock": low_stock})
