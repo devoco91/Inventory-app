@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from django.http import JsonResponse
 
 from .views import (
     ProductViewSet, SupplierViewSet, CategoryViewSet,
@@ -18,6 +19,7 @@ router.register('orders', OrderViewSet, basename='order')
 urlpatterns = [
     path('', include(router.urls)),
     path('auth/login/', LoginView.as_view(), name='login'),
+    path("health/", lambda req: JsonResponse({"status": "ok"})),
 
     # Products Export
     path('export/products/csv/', ProductCSVExportView.as_view(), name='export_products_csv'),

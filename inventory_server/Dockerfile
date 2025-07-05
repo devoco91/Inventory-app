@@ -1,23 +1,21 @@
-# Use official Python base image
+# Dockerfile
+
 FROM python:3.11-slim
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Set work directory
 WORKDIR /app
 
-# Install dependencies
 COPY requirements.txt /app/
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy project files
+# Ensure all project files including inventory app are copied
 COPY . /app/
 
-# Expose Fly.io expected port
-EXPOSE 8080
+# Set PYTHONPATH for Django to discover modules
+ENV PYTHONPATH=/app
 
-# Start Django with Gunicorn on port 8080 (Fly.io internal)
+EXPOSE 8000
+
 CMD ["gunicorn", "inventory_server.wsgi:application", "--bind", "0.0.0.0:8080"]
