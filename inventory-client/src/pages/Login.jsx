@@ -1,13 +1,11 @@
 // src/pages/Login.js
 
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../utils/toast';
+import api from '../utils/axios';
 
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE || 'https://inventory-server-wild-shape-828.fly.dev';
-
-export default function Login() {
+export default function Login({ setIsAuthenticated }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -15,13 +13,23 @@ export default function Login() {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
-      const res = await axios.post('/api/auth/login/', { username, password });
+      console.log('Sending:', { username, password });
+      const res = await api.post(
+        '/api/auth/login/',
+        { username, password },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      console.log('Login Success:', res.data);
+      if (!res.data.access) {
+        throw new Error('No access token in response');
+      }
       localStorage.setItem('access', res.data.access);
       localStorage.setItem('refresh', res.data.refresh);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
+      setIsAuthenticated(true);
       showToast('Login successful');
       navigate('/dashboard');
     } catch (err) {
+      console.error('Login Error:', err.response?.data || err.message);
       showToast('Login failed. Check credentials.', 'error');
     }
   };

@@ -9,7 +9,9 @@ import Customers from './pages/Customers';
 import BarcodeScanner from './pages/BarcodeScanner';
 import Navbar from './components/Navbar';
 import ToastContainer from './components/ToastContainer';
+import ProtectedRoute from './components/ProtectedRoute';
 import axios from 'axios';
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -76,12 +78,12 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/logout" element={<Logout />} />
-        <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/suppliers" element={<Suppliers />} />
-        <Route path="/customers" element={<Customers />} />
-        <Route path="/barcode-scanner" element={<BarcodeScanner />} />
+        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
+        <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+        <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
+        <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+        <Route path="/barcode-scanner" element={<ProtectedRoute><BarcodeScanner /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
