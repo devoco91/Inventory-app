@@ -55,15 +55,7 @@ api.interceptors.response.use(
 
       try {
         const refresh = localStorage.getItem('refresh');
-        if (!refresh) {
-          console.warn('⚠️ Refresh token missing');
-          localStorage.removeItem('access');
-          localStorage.removeItem('refresh');
-          showToast('Session expired. Please log in again.', 'error');
-          setTimeout(() => window.location.replace('/login'), 500);
-          return Promise.reject(err);
-        }
-
+        if (!refresh) throw new Error('No refresh token');
         const res = await axios.post(`${api.defaults.baseURL}/api/token/refresh/`, { refresh });
         const newAccess = res.data.access;
         localStorage.setItem('access', newAccess);
@@ -72,7 +64,6 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshErr) {
         console.warn('🔒 Token refresh failed:', refreshErr);
-        console.warn('🔍 Full error response:', refreshErr?.response?.data);
         processQueue(refreshErr, null);
         localStorage.removeItem('access');
         localStorage.removeItem('refresh');

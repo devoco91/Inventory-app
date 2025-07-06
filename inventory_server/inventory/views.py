@@ -5,64 +5,62 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.hashers import check_password
+from django.core.mail import send_mail
 from reportlab.pdfgen import canvas
 from collections import defaultdict
-from datetime import datetime, timedelta
 import io, csv
+from datetime import datetime
 
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
-from django.conf import settings
 from .models import *
 from .serializers import *
 
-
-# ------------------
-# Custom JWT Login with role
-# ------------------
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        data['role'] = self.user.role
-        return data
-
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
-
-
-# ------------------
 # CRUD ViewSets
-# ------------------
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
-
 
 class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer
     permission_classes = [IsAuthenticated]
 
-
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated]
-
 
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated]
 
-
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
+# Login endpoint
+class LoginView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid credentials'}, status=400)
+
+        if not check_password(password, user.password):
+            return Response({'error': 'Invalid password'}, status=400)
+
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'role': user.role
+        })
 
 # ------------------
 # Export: Products
@@ -86,7 +84,6 @@ class ProductCSVExportView(APIView):
             ])
         return response
 
-
 class ProductPDFExportView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -109,7 +106,6 @@ class ProductPDFExportView(APIView):
         buffer.seek(0)
         return FileResponse(buffer, as_attachment=True, filename='products.pdf')
 
-
 # ------------------
 # Export: Orders
 # ------------------
@@ -131,7 +127,6 @@ class OrderCSVExportView(APIView):
                 items
             ])
         return response
-
 
 class OrderPDFExportView(APIView):
     permission_classes = [IsAuthenticated]
@@ -157,9 +152,8 @@ class OrderPDFExportView(APIView):
         buffer.seek(0)
         return FileResponse(buffer, as_attachment=True, filename='orders.pdf')
 
-
 # ------------------
-# Dashboard APIs
+# Dashboard API
 # ------------------
 @api_view(['GET'])
 def sales_summary(request):
@@ -172,7 +166,6 @@ def sales_summary(request):
         [{'month': m, 'sales': round(s, 2)} for m, s in result.items()],
         safe=False
     )
-
 
 @api_view(['GET'])
 def inventory_summary(request):

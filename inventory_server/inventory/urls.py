@@ -1,10 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from django.http import JsonResponse
-from rest_framework_simplejwt.views import TokenRefreshView
+
 from .views import (
     ProductViewSet, SupplierViewSet, CategoryViewSet,
-    CustomerViewSet, OrderViewSet, CustomTokenObtainPairView,
+    CustomerViewSet, OrderViewSet, LoginView,
     ProductCSVExportView, ProductPDFExportView,
     OrderCSVExportView, OrderPDFExportView,
     sales_summary, inventory_summary
@@ -19,11 +19,7 @@ router.register('orders', OrderViewSet, basename='order')
 
 urlpatterns = [
     path('', include(router.urls)),
-
-    # JWT Auth Endpoints
-    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
+    path('auth/login/', LoginView.as_view(), name='login'),
     path("health/", lambda req: JsonResponse({"status": "ok"})),
 
     # Products Export

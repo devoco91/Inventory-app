@@ -15,15 +15,14 @@ export default function Login({ setToken }) {
     try {
       console.log('Sending:', { username, password });
       const res = await api.post(
-        '/api/token/',
+        '/api/auth/login/',
         { username, password },
         { headers: { 'Content-Type': 'application/json' } }
       );
       console.log('Login Success:', res.data);
-      if (!res.data.access || !res.data.refresh) throw new Error('Missing tokens');
+      if (!res.data.access) throw new Error('No access token in response');
       localStorage.setItem('access', res.data.access);
       localStorage.setItem('refresh', res.data.refresh);
-      localStorage.setItem('role', res.data.role); // optional
       setToken(res.data.access);
       showToast('Login successful');
       navigate('/dashboard');
