@@ -1,5 +1,6 @@
+// src/App.jsx
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Products from './pages/Products';
@@ -10,6 +11,7 @@ import BarcodeScanner from './pages/BarcodeScanner';
 import Navbar from './components/Navbar';
 import ToastContainer from './components/ToastContainer';
 import ProtectedRoute from './components/ProtectedRoute';
+import { showToast } from './utils/toast';
 import axios from 'axios';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -58,25 +60,31 @@ function Logout() {
   useEffect(() => {
     localStorage.removeItem('access');
     localStorage.removeItem('refresh');
+    showToast('Logged out');
     window.location.href = '/login';
   }, []);
   return null;
 }
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [token, setToken] = useState(() => localStorage.getItem('access'));
 
   useEffect(() => {
-    const token = localStorage.getItem('access');
-    setIsAuthenticated(!!token);
+    const access = localStorage.getItem('access');
+    if (!access) {
+      localStorage.removeItem('refresh');
+      setToken(null);
+    } else {
+      setToken(access);
+    }
   }, []);
 
   return (
     <Router>
       <ToastContainer />
-      {isAuthenticated && <Navbar />}
+      {token && <Navbar />}
       <Routes>
-        <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+        <Route path="/login" element={<Login setToken={setToken} />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />

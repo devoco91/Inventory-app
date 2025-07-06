@@ -1,15 +1,6 @@
-// frontend/src/pages/Suppliers.js
-
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../utils/axios';
 import { showToast } from '../utils/toast';
-
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE || 'https://inventory-server-wild-shape-828.fly.dev';
-axios.interceptors.request.use(config => {
-  const token = localStorage.getItem('access');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 export default function Suppliers() {
   const [suppliers, setSuppliers] = useState([]);
@@ -18,7 +9,7 @@ export default function Suppliers() {
 
   const fetchSuppliers = async () => {
     try {
-      const res = await axios.get('/api/suppliers/');
+      const res = await api.get('/api/suppliers/');
       setSuppliers(res.data);
     } catch {
       showToast('❌ Failed to fetch suppliers', 'error');
@@ -39,10 +30,10 @@ export default function Suppliers() {
 
     try {
       if (editingId) {
-        await axios.put(`/api/suppliers/${editingId}/`, form);
+        await api.put(`/api/suppliers/${editingId}/`, form);
         showToast('✅ Supplier updated');
       } else {
-        await axios.post('/api/suppliers/', form);
+        await api.post('/api/suppliers/', form);
         showToast('✅ Supplier added');
       }
       setForm({ name: '', contact_email: '' });
@@ -61,7 +52,7 @@ export default function Suppliers() {
   const handleDelete = async id => {
     if (!window.confirm('Delete supplier?')) return;
     try {
-      await axios.delete(`/api/suppliers/${id}/`);
+      await api.delete(`/api/suppliers/${id}/`);
       showToast('🗑️ Deleted');
       fetchSuppliers();
     } catch {

@@ -1,26 +1,41 @@
+// frontend/src/pages/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../utils/axios';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE || 'https://inventory-server-wild-shape-828.fly.dev';
 
 export default function Dashboard() {
   const [salesData, setSalesData] = useState([]);
   const [inventoryStats, setInventoryStats] = useState({ total: 0, lowStock: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('access');
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-    axios.get('/api/dashboard/sales/', { headers })
-      .then(res => setSalesData(res.data))
-      .catch(err => console.error('❌ Sales fetch failed:', err));
-
-    axios.get('/api/dashboard/inventory/', { headers })
-      .then(res => setInventoryStats(res.data))
-      .catch(err => console.error('❌ Inventory fetch failed:', err));
+    const fetchData = async () => {
+      try {
+        const [salesRes, inventoryRes] = await Promise.all([
+          api.get('/api/dashboard/sales/'),
+          api.get('/api/dashboard/inventory/')
+        ]);
+        setSalesData(salesRes.data);
+        setInventoryStats(inventoryRes.data);
+      } catch (err) {
+        console.error('❌ Dashboard data fetch failed:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="container mt-5 text-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-4">

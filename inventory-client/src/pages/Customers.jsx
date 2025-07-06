@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE || 'https://inventory-server-wild-shape-828.fly.dev';
-
-const token = localStorage.getItem('access');
-if (token) {
-  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-}
+import api from '../utils/axios';
 
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
@@ -15,7 +8,7 @@ export default function Customers() {
 
   const fetchCustomers = async () => {
     try {
-      const res = await axios.get('/api/customers/');
+      const res = await api.get('/api/customers/');
       setCustomers(res.data);
     } catch (err) {
       console.error('❌ Failed to fetch customers:', err);
@@ -34,9 +27,9 @@ export default function Customers() {
     e.preventDefault();
     try {
       if (editingId) {
-        await axios.put(`/api/customers/${editingId}/`, form);
+        await api.put(`/api/customers/${editingId}/`, form);
       } else {
-        await axios.post('/api/customers/', form);
+        await api.post('/api/customers/', form);
       }
       setForm({ name: '', email: '' });
       setEditingId(null);
@@ -53,7 +46,7 @@ export default function Customers() {
 
   const handleDelete = async id => {
     try {
-      await axios.delete(`/api/customers/${id}/`);
+      await api.delete(`/api/customers/${id}/`);
       fetchCustomers();
     } catch (err) {
       console.error('❌ Failed to delete customer:', err);

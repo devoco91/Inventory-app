@@ -1,26 +1,24 @@
-// frontend/src/pages/Products.js
+// src/pages/Products.js
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../utils/axios';
 import { showToast } from '../utils/toast';
-
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE || 'https://inventory-server-wild-shape-828.fly.dev';
-axios.interceptors.request.use(config => {
-  const token = localStorage.getItem('access');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState({ name: '', quantity: '', price: '' });
   const [editingId, setEditingId] = useState(null);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('/api/products/');
+      const res = await api.get('/api/products/');
       setProducts(res.data);
     } catch (err) {
-      showToast('❌ Failed to load products', 'error');
+      if (!err?.config?._retry && err?.response?.status !== 401) {
+        showToast('❌ Failed to load products', 'error');
+      }
+    } finally {
+      setInitialLoad(false);
     }
   };
 
@@ -39,17 +37,19 @@ export default function Products() {
     }
     try {
       if (editingId) {
-        await axios.put(`/api/products/${editingId}/`, form);
+        await api.put(`/api/products/${editingId}/`, form);
         showToast('✅ Product updated');
       } else {
-        await axios.post('/api/products/', form);
+        await api.post('/api/products/', form);
         showToast('✅ Product added');
       }
       setForm({ name: '', quantity: '', price: '' });
       setEditingId(null);
       fetchProducts();
-    } catch {
-      showToast('❌ Failed to save product', 'error');
+    } catch (err) {
+      if (!err?.config?._retry && err?.response?.status !== 401) {
+        showToast('❌ Failed to save product', 'error');
+      }
     }
   };
 
@@ -61,11 +61,13 @@ export default function Products() {
   const handleDelete = async id => {
     if (!window.confirm('Delete this product?')) return;
     try {
-      await axios.delete(`/api/products/${id}/`);
+      await api.delete(`/api/products/${id}/`);
       showToast('🗑️ Deleted');
       fetchProducts();
-    } catch {
-      showToast('❌ Delete failed', 'error');
+    } catch (err) {
+      if (!err?.config?._retry && err?.response?.status !== 401) {
+        showToast('❌ Delete failed', 'error');
+      }
     }
   };
 

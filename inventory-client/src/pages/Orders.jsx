@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../utils/axios';
 import { showToast } from '../utils/toast';
-
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE || 'https://inventory-server-wild-shape-828.fly.dev';
-axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('access')}`;
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get('/api/orders/');
+      const res = await api.get('/api/orders/');
       setOrders(res.data);
     } catch (err) {
       showToast('❌ Failed to load orders', 'error');
@@ -20,7 +17,7 @@ export default function Orders() {
   const updateStatus = async (id, newStatus) => {
     const order = orders.find(o => o.id === id);
     try {
-      await axios.put(`/api/orders/${id}/`, { ...order, status: newStatus });
+      await api.put(`/api/orders/${id}/`, { ...order, status: newStatus });
       showToast(`✅ Order marked as ${newStatus}`);
       fetchOrders();
     } catch (err) {

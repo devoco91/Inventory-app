@@ -5,15 +5,30 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view
-from django.contrib.auth.hashers import check_password
 from reportlab.pdfgen import canvas
 from collections import defaultdict
 from datetime import datetime, timedelta
-import io, csv, jwt
+import io, csv
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from django.conf import settings
 from .models import *
 from .serializers import *
+
+
+# ------------------
+# Custom JWT Login with role
+# ------------------
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['role'] = self.user.role
+        return data
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 
 # ------------------
@@ -47,43 +62,6 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
-
-
-# ------------------
-# Login Endpoint with manual JWT
-# ------------------
-class LoginView(APIView):
-    def post(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
-
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not check_password(password, user.password):
-            return Response({"error": "Invalid password"}, status=status.HTTP_400_BAD_REQUEST)
-
-        access_payload = {
-            "id": str(user.id),
-            "username": user.username,
-            "role": user.role,
-            "exp": datetime.utcnow() + timedelta(minutes=5)
-        }
-        refresh_payload = {
-            "id": str(user.id),
-            "exp": datetime.utcnow() + timedelta(days=30)
-        }
-
-        access = jwt.encode(access_payload, settings.SECRET_KEY, algorithm="HS256")
-        refresh = jwt.encode(refresh_payload, settings.SECRET_KEY, algorithm="HS256")
-
-        return Response({
-            "access": access,
-            "refresh": refresh,
-            "role": user.role
-        })
 
 
 # ------------------

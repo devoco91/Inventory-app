@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { showToast } from '../utils/toast';
 import api from '../utils/axios';
 
-export default function Login({ setIsAuthenticated }) {
+export default function Login({ setToken }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -15,17 +15,16 @@ export default function Login({ setIsAuthenticated }) {
     try {
       console.log('Sending:', { username, password });
       const res = await api.post(
-        '/api/auth/login/',
+        '/api/token/',
         { username, password },
         { headers: { 'Content-Type': 'application/json' } }
       );
       console.log('Login Success:', res.data);
-      if (!res.data.access) {
-        throw new Error('No access token in response');
-      }
+      if (!res.data.access || !res.data.refresh) throw new Error('Missing tokens');
       localStorage.setItem('access', res.data.access);
       localStorage.setItem('refresh', res.data.refresh);
-      setIsAuthenticated(true);
+      localStorage.setItem('role', res.data.role); // optional
+      setToken(res.data.access);
       showToast('Login successful');
       navigate('/dashboard');
     } catch (err) {
