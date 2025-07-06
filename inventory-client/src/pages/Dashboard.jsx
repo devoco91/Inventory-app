@@ -1,20 +1,25 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE || 'https://inventory-server-wild-shape-828.fly.dev';
 
 export default function Dashboard() {
   const [salesData, setSalesData] = useState([]);
   const [inventoryStats, setInventoryStats] = useState({ total: 0, lowStock: 0 });
 
   useEffect(() => {
-    // Replace with real API calls
-    setSalesData([
-      { month: 'Jan', sales: 1200 },
-      { month: 'Feb', sales: 800 },
-      { month: 'Mar', sales: 1700 },
-      { month: 'Apr', sales: 900 },
-    ]);
-    setInventoryStats({ total: 134, lowStock: 8 });
+    const token = localStorage.getItem('access');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    axios.get('/api/dashboard/sales/', { headers })
+      .then(res => setSalesData(res.data))
+      .catch(err => console.error('❌ Sales fetch failed:', err));
+
+    axios.get('/api/dashboard/inventory/', { headers })
+      .then(res => setInventoryStats(res.data))
+      .catch(err => console.error('❌ Inventory fetch failed:', err));
   }, []);
 
   return (

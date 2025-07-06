@@ -3,6 +3,11 @@ import axios from 'axios';
 
 axios.defaults.baseURL = import.meta.env.VITE_API_BASE || 'https://inventory-server-wild-shape-828.fly.dev';
 
+const token = localStorage.getItem('access');
+if (token) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
+
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
   const [form, setForm] = useState({ name: '', email: '' });

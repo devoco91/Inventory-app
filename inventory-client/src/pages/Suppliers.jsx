@@ -4,14 +4,25 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { showToast } from '../utils/toast';
 
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE || 'https://inventory-server-wild-shape-828.fly.dev';
+axios.interceptors.request.use(config => {
+  const token = localStorage.getItem('access');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 export default function Suppliers() {
   const [suppliers, setSuppliers] = useState([]);
   const [form, setForm] = useState({ name: '', contact_email: '' });
   const [editingId, setEditingId] = useState(null);
 
   const fetchSuppliers = async () => {
-    const res = await axios.get('/api/suppliers/');
-    setSuppliers(res.data);
+    try {
+      const res = await axios.get('/api/suppliers/');
+      setSuppliers(res.data);
+    } catch {
+      showToast('❌ Failed to fetch suppliers', 'error');
+    }
   };
 
   useEffect(() => {
@@ -29,21 +40,21 @@ export default function Suppliers() {
     try {
       if (editingId) {
         await axios.put(`/api/suppliers/${editingId}/`, form);
-        showToast('Supplier updated');
+        showToast('✅ Supplier updated');
       } else {
         await axios.post('/api/suppliers/', form);
-        showToast('Supplier added');
+        showToast('✅ Supplier added');
       }
       setForm({ name: '', contact_email: '' });
       setEditingId(null);
       fetchSuppliers();
     } catch {
-      showToast('Save failed', 'error');
+      showToast('❌ Save failed', 'error');
     }
   };
 
   const handleEdit = s => {
-    setForm(s);
+    setForm({ name: s.name, contact_email: s.contact_email });
     setEditingId(s.id);
   };
 
@@ -51,10 +62,10 @@ export default function Suppliers() {
     if (!window.confirm('Delete supplier?')) return;
     try {
       await axios.delete(`/api/suppliers/${id}/`);
-      showToast('Deleted');
+      showToast('🗑️ Deleted');
       fetchSuppliers();
     } catch {
-      showToast('Delete failed', 'error');
+      showToast('❌ Delete failed', 'error');
     }
   };
 

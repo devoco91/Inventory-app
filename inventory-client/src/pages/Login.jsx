@@ -5,6 +5,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../utils/toast';
 
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE || 'https://inventory-server-wild-shape-828.fly.dev';
+
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -16,6 +18,7 @@ export default function Login() {
       const res = await axios.post('/api/auth/login/', { username, password });
       localStorage.setItem('access', res.data.access);
       localStorage.setItem('refresh', res.data.refresh);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
       showToast('Login successful');
       navigate('/dashboard');
     } catch (err) {

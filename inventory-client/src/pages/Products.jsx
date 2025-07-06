@@ -1,8 +1,14 @@
 // frontend/src/pages/Products.js
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { showToast } from '../utils/toast';
+
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE || 'https://inventory-server-wild-shape-828.fly.dev';
+axios.interceptors.request.use(config => {
+  const token = localStorage.getItem('access');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -10,8 +16,12 @@ export default function Products() {
   const [editingId, setEditingId] = useState(null);
 
   const fetchProducts = async () => {
-    const res = await axios.get('/api/products/');
-    setProducts(res.data);
+    try {
+      const res = await axios.get('/api/products/');
+      setProducts(res.data);
+    } catch (err) {
+      showToast('❌ Failed to load products', 'error');
+    }
   };
 
   useEffect(() => {
@@ -30,21 +40,21 @@ export default function Products() {
     try {
       if (editingId) {
         await axios.put(`/api/products/${editingId}/`, form);
-        showToast('Product updated successfully');
+        showToast('✅ Product updated');
       } else {
         await axios.post('/api/products/', form);
-        showToast('Product added successfully');
+        showToast('✅ Product added');
       }
       setForm({ name: '', quantity: '', price: '' });
       setEditingId(null);
       fetchProducts();
-    } catch (err) {
-      showToast('Failed to save product', 'error');
+    } catch {
+      showToast('❌ Failed to save product', 'error');
     }
   };
 
   const handleEdit = product => {
-    setForm(product);
+    setForm({ name: product.name, quantity: product.quantity, price: product.price });
     setEditingId(product.id);
   };
 
@@ -52,10 +62,10 @@ export default function Products() {
     if (!window.confirm('Delete this product?')) return;
     try {
       await axios.delete(`/api/products/${id}/`);
-      showToast('Product deleted');
+      showToast('🗑️ Deleted');
       fetchProducts();
     } catch {
-      showToast('Failed to delete', 'error');
+      showToast('❌ Delete failed', 'error');
     }
   };
 
