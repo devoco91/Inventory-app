@@ -1,9 +1,11 @@
+// src/pages/Orders.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../utils/axios';
 import { showToast } from '../utils/toast';
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
     try {
@@ -11,6 +13,8 @@ export default function Orders() {
       setOrders(res.data);
     } catch (err) {
       showToast('❌ Failed to load orders', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,6 +41,16 @@ export default function Orders() {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="container mt-5 text-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-4">

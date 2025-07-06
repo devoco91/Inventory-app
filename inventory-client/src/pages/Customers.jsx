@@ -1,5 +1,7 @@
+// src/pages/Customers.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../utils/axios';
+import { showToast } from '../utils/toast';
 
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
@@ -11,7 +13,7 @@ export default function Customers() {
       const res = await api.get('/api/customers/');
       setCustomers(res.data);
     } catch (err) {
-      console.error('❌ Failed to fetch customers:', err);
+      showToast('❌ Failed to fetch customers', 'error');
     }
   };
 
@@ -28,14 +30,16 @@ export default function Customers() {
     try {
       if (editingId) {
         await api.put(`/api/customers/${editingId}/`, form);
+        showToast('✅ Customer updated');
       } else {
         await api.post('/api/customers/', form);
+        showToast('✅ Customer added');
       }
       setForm({ name: '', email: '' });
       setEditingId(null);
       fetchCustomers();
     } catch (err) {
-      console.error('❌ Failed to save customer:', err);
+      showToast('❌ Failed to save customer', 'error');
     }
   };
 
@@ -47,9 +51,10 @@ export default function Customers() {
   const handleDelete = async id => {
     try {
       await api.delete(`/api/customers/${id}/`);
+      showToast('🗑️ Deleted');
       fetchCustomers();
     } catch (err) {
-      console.error('❌ Failed to delete customer:', err);
+      showToast('❌ Failed to delete customer', 'error');
     }
   };
 

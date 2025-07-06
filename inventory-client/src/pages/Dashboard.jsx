@@ -1,7 +1,8 @@
-// frontend/src/pages/Dashboard.jsx
+// src/pages/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../utils/axios';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { showToast } from '../utils/toast';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function Dashboard() {
@@ -19,7 +20,7 @@ export default function Dashboard() {
         setSalesData(salesRes.data);
         setInventoryStats(inventoryRes.data);
       } catch (err) {
-        console.error('❌ Dashboard data fetch failed:', err);
+        showToast('❌ Dashboard data fetch failed', 'error');
       } finally {
         setLoading(false);
       }

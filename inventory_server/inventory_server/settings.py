@@ -7,7 +7,6 @@ import logging
 
 load_dotenv()
 
-# Validate required environment variables early
 assert os.getenv("MONGO_URI"), "❌ MONGO_URI is missing from environment"
 assert os.getenv("DJANGO_SECRET_KEY"), "❌ DJANGO_SECRET_KEY is missing"
 
@@ -22,7 +21,6 @@ try:
 except Exception as e:
     logging.error("❌ MongoDB connection failed", exc_info=e)
 
-# === Django Settings ===
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'unsafe-default')
@@ -102,6 +100,12 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.getenv("JWT_ACCESS_TOKEN_LIFETIME", 5))),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("JWT_REFRESH_TOKEN_LIFETIME", 30))),
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
 }
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")

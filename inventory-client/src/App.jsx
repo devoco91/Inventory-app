@@ -12,49 +12,9 @@ import Navbar from './components/Navbar';
 import ToastContainer from './components/ToastContainer';
 import ProtectedRoute from './components/ProtectedRoute';
 import { showToast } from './utils/toast';
-import axios from 'axios';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
-
-const refreshToken = async () => {
-  const refresh = localStorage.getItem('refresh');
-  if (refresh) {
-    try {
-      const res = await axios.post('/api/token/refresh/', { refresh });
-      localStorage.setItem('access', res.data.access);
-      return res.data.access;
-    } catch {
-      localStorage.removeItem('access');
-      localStorage.removeItem('refresh');
-      window.location.href = '/login';
-    }
-  } else {
-    window.location.href = '/login';
-  }
-};
-
-axios.interceptors.request.use(async config => {
-  const token = localStorage.getItem('access');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-axios.interceptors.response.use(
-  res => res,
-  async err => {
-    const originalRequest = err.config;
-    if (err.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      const newToken = await refreshToken();
-      if (newToken) {
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return axios(originalRequest);
-      }
-    }
-    return Promise.reject(err);
-  }
-);
 
 function Logout() {
   useEffect(() => {

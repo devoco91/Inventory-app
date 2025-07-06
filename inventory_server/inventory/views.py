@@ -3,8 +3,8 @@ from django.http import HttpResponse, FileResponse, JsonResponse
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
 from django.core.mail import send_mail
@@ -44,6 +44,8 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 # Login endpoint
 class LoginView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -156,6 +158,7 @@ class OrderPDFExportView(APIView):
 # Dashboard API
 # ------------------
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def sales_summary(request):
     result = defaultdict(float)
     for order in Order.objects.all():
@@ -168,7 +171,13 @@ def sales_summary(request):
     )
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def inventory_summary(request):
     total = Product.objects.count()
     low_stock = Product.objects.filter(quantity__lte=10).count()
     return JsonResponse({"total": total, "lowStock": low_stock})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def ping(request):
+    return JsonResponse({"message": "Token valid"})

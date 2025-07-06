@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenRefreshView
 from django.http import JsonResponse
 
 from .views import (
@@ -7,7 +8,7 @@ from .views import (
     CustomerViewSet, OrderViewSet, LoginView,
     ProductCSVExportView, ProductPDFExportView,
     OrderCSVExportView, OrderPDFExportView,
-    sales_summary, inventory_summary
+    sales_summary, inventory_summary, ping
 )
 
 router = DefaultRouter()
@@ -20,13 +21,13 @@ router.register('orders', OrderViewSet, basename='order')
 urlpatterns = [
     path('', include(router.urls)),
     path('auth/login/', LoginView.as_view(), name='login'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path("health/", lambda req: JsonResponse({"status": "ok"})),
+    path("ping/", ping, name='ping'),
 
-    # Products Export
+    # Exports
     path('export/products/csv/', ProductCSVExportView.as_view(), name='export_products_csv'),
     path('export/products/pdf/', ProductPDFExportView.as_view(), name='export_products_pdf'),
-
-    # Orders Export
     path('export/orders/csv/', OrderCSVExportView.as_view(), name='export_orders_csv'),
     path('export/orders/pdf/', OrderPDFExportView.as_view(), name='export_orders_pdf'),
 

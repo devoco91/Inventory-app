@@ -1,4 +1,4 @@
-// src/pages/Products.js
+// src/pages/Products.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../utils/axios';
 import { showToast } from '../utils/toast';
@@ -73,6 +73,16 @@ export default function Products() {
 
   const exportCSV = () => window.open('/api/export/products/csv/', '_blank');
   const exportPDF = () => window.open('/api/export/products/pdf/', '_blank');
+
+  if (initialLoad) {
+    return (
+      <div className="container mt-5 text-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-4">
